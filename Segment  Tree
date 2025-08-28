@@ -1,0 +1,50 @@
+class SegmentTree {
+public:
+    vector<int>seg;
+    int n;
+    SegmentTree(vector<int>& nums) {
+        n=nums.size();
+        seg.resize(4*n);
+    }
+    void buildtree(vector<int>& nums,int i,int left ,int right)
+    {
+        if(left==right)
+        {
+            seg[i]=nums[left];
+            return;
+        }
+        int mid=(left+right)/2;
+        buildtree(nums,2*i+1,left,mid);
+        buildtree(nums,2*i+2,mid+1,right);
+        seg[i]=seg[2*i+1]+seg[2*i+2];
+        
+    }
+    
+    void update(int pos, int left, int right, int index, int val) {
+        
+        
+        // total overlap
+        if(left==right){
+                seg[pos]=val;
+            return;
+        }
+
+        // partial overlap
+        int mid=(left+right)/2;
+        if(index<=mid) updateUtil(2*pos+1,left,mid,index,val); // left child
+        else updateUtil(2*pos+2,mid+1,right,index,val); // right child
+        seg[pos]=seg[2*pos+1]+seg[2*pos+2];
+    }
+    int query(int left, int right,int i,int l,int r)
+    {
+        if (l >= left && r <= right) return seg[i];
+        
+        if (r < left || l > right) return 0; 
+
+        int mid = (l + r) / 2;
+        int leftAns = query(left, right, 2*i+1, l, mid);
+        int rightAns = query(left, right, 2*i+2, mid+1, r);
+        return leftAns+ rightAns;
+    }
+    
+};
