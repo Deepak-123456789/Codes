@@ -1,0 +1,10 @@
+Traverse a segment tree
+     1-complete overlap
+           1-update the node
+           2-lazy propagate downwords and return
+     2-partially overlap
+           1-left
+           2-right
+           3-left+right
+      3-no overlap  
+          1-return 0
