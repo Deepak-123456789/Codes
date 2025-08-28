@@ -1,4 +1,5 @@
-Traverse a segment tree
+UPDATE-
+Traverse a segment tree and update prev remainings
      1-complete overlap
            1-update the node
            2-lazy propagate downwords and return
@@ -8,3 +9,117 @@ Traverse a segment tree
            3-left+right
       3-no overlap  
           1-return 0
+
+QUERY-
+   1-update the prev
+   2-no overlap
+   3-complete overlap
+   4-partial overlap
+
+code-
+
+#include<bits/stdc++.h>
+using namespace std;
+
+class SegmentTree {
+public:
+    vector<int> seg, lazy;
+    SegmentTree(int n) {
+        seg.resize(4*n, 0);
+        lazy.resize(4*n, 0);
+    }
+
+    void buildtree(vector<int>& nums, int i, int left, int right) {
+        if(left == right) {
+            seg[i] = nums[left];
+            return;
+        }
+        int mid = (left + right) / 2;
+        buildtree(nums, 2*i+1, left, mid);
+        buildtree(nums, 2*i+2, mid+1, right);
+        seg[i] = seg[2*i+1] + seg[2*i+2];
+    }
+
+    void update(int index, int left, int right, int l, int r, int val) {
+        // Apply pending lazy update
+        if(lazy[index] != 0) {
+            seg[index] += (right-left+1) * lazy[index];
+            if(left != right) {
+                lazy[2*index+1] += lazy[index];
+                lazy[2*index+2] += lazy[index];
+            }
+            lazy[index] = 0;
+        }
+
+        // No overlap
+        if(r < left || l > right) return;
+
+        // complete overlap
+        if(l <= left && r >= right) {
+            seg[index] += (right-left+1) * val;
+            if(left != right) {
+                lazy[2*index+1] += val;
+                lazy[2*index+2] += val;
+            }
+            return;
+        }
+
+        // Partial overlap
+        int mid = (left + right) / 2;
+        update(2*index+1, left, mid, l, r, val);
+        update(2*index+2, mid+1, right, l, r, val);
+        seg[index] = seg[2*index+1] + seg[2*index+2];
+    }
+
+    int query(int l, int r, int index, int left, int right) {
+        // Apply pending lazy updates
+        if(lazy[index] != 0) {
+            seg[index] += (right-left+1) * lazy[index];
+            if(left != right) {
+                lazy[2*index+1] += lazy[index];
+                lazy[2*index+2] += lazy[index];
+            }
+            lazy[index] = 0;
+        }
+
+        // No overlap
+        if(r < left || l > right) return 0;
+
+        // Total overlap
+        if(l <= left && r >= right) return seg[index];
+
+        // Partial overlap
+        int mid = (left + right) / 2;
+        int leftAns = query(l, r, 2*index+1, left, mid);
+        int rightAns = query(l, r, 2*index+2, mid+1, right);
+        return leftAns + rightAns;
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+    vector<int> arr(n);
+    for(int i=0; i<n; i++) cin >> arr[i];
+
+    SegmentTree st(n);
+    st.buildtree(arr, 0, 0, n-1);
+
+    int q;
+    cin >> q;
+    while(q--) {
+        int type;
+        cin >> type;
+        if(type == 1) { // update
+            int l, r, val;
+            cin >> l >> r >> val;
+            st.update(0, 0, n-1, l, r, val);
+        }
+        else { // query
+            int l, r;
+            cin >> l >> r;
+            cout << st.query(l, r, 0, 0, n-1) << endl;
+        }
+    }
+}
+
